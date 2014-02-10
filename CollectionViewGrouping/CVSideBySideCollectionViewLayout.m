@@ -8,11 +8,6 @@
 
 #import "CVSideBySideCollectionViewLayout.h"
 
-@interface CVSideBySideCollectionViewLayout ()
-@property (strong) NSDictionary *layoutAttributes;
-@property (strong) NSDictionary *supplementaryAttributes;
-@end
-
 @implementation CVSideBySideCollectionViewLayout
 - (UICollectionViewLayoutAttributes *)layoutAttributesForItemAtIndexPath:(NSIndexPath *)indexPath {
     return self.layoutAttributes[CVStackedSectionItemCellKind][indexPath];
@@ -50,20 +45,7 @@
     allAttributes[CVStackedSectionPageCellKind] = containerCellAttributes;
     
     self.layoutAttributes = [NSDictionary dictionaryWithDictionary:allAttributes];
-}
-
-- (NSArray *)layoutAttributesForElementsInRect:(CGRect)rect {
-    NSMutableArray *allAttributes = [NSMutableArray arrayWithCapacity:self.layoutAttributes.count];
-    
-    [self.layoutAttributes enumerateKeysAndObjectsUsingBlock:^(NSString *elementIdentifier, NSDictionary *elementsInfo, BOOL *stop) {
-        [elementsInfo enumerateKeysAndObjectsUsingBlock:^(NSIndexPath *indexPath, UICollectionViewLayoutAttributes *attributes, BOOL *innerStop) {
-            if (CGRectIntersectsRect(rect, attributes.frame)) {
-                [allAttributes addObject:attributes];
-            }
-        }];
-    }];
-    
-    return allAttributes;
+    self.contentSize = CGSizeMake(self.collectionView.numberOfSections * self.collectionView.frame.size.width, self.collectionView.frame.size.height);
 }
 
 - (CGPoint)targetContentOffsetForProposedContentOffset:(CGPoint)proposedContentOffset {
@@ -71,10 +53,6 @@
         return self.offsetForTransition;
     }
     return proposedContentOffset;
-}
-
-- (CGSize)collectionViewContentSize {
-    return CGSizeMake(self.collectionView.numberOfSections * self.collectionView.frame.size.width, self.collectionView.frame.size.height);
 }
 
 - (BOOL)shouldInvalidateLayoutForBoundsChange:(CGRect)newBounds {
@@ -100,8 +78,10 @@
     attribs.frame = rect;
     attribs.zIndex = 1.0;
     
-    CGFloat rotationValue = round((arc4random_uniform(2000) / 423.0) * (arc4random() % 2 == 0 ? 1 : -1));
-    attribs.transform = CGAffineTransformMakeRotation(rotationValue * (M_PI / 180));
+    NSValue *transformValue = self.itemTransforms[indexPath];
+    if (transformValue) {
+        attribs.transform = [transformValue CGAffineTransformValue];
+    }
     
     return attribs;
 }

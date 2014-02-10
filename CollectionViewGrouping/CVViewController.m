@@ -14,10 +14,11 @@
 
 #define CV_ITEM_SIZE CGSizeMake(150, 200)
 
+NSString * const CVViewControllerContainerID = @"container";
+
 @interface CVViewController () <UICollectionViewDataSource, UICollectionViewDelegateFlowLayout>
 @property (strong) UICollectionView *collectionView;
 @property (strong) CVStackedSectionFlowLayout *layout;
-@property (strong) CVPagedSectionTableCollectionViewLayout *flowLayout;
 @property (strong) CVSideBySideCollectionViewLayout *sideBySideLayout;
 @property (assign) BOOL open;
 @end
@@ -27,13 +28,12 @@
 - (instancetype)initWithCoder:(NSCoder *)aDecoder {
     self = [super initWithCoder:aDecoder];
     if (self) {
-        self.flowLayout = [[CVPagedSectionTableCollectionViewLayout alloc] init];
         self.sideBySideLayout = [[CVSideBySideCollectionViewLayout alloc] init];
-        self.layout = [[CVStackedSectionFlowLayout alloc] init];
+        self.layout = [[CVStackedSectionFlowLayout alloc] initWithItemSize:CV_ITEM_SIZE];
         
         self.collectionView = [[UICollectionView alloc] initWithFrame:CGRectZero collectionViewLayout:self.layout];
         [self.collectionView registerClass:[UICollectionViewCell class] forCellWithReuseIdentifier:CVStackedSectionItemCellKind];
-        [self.collectionView registerClass:[CVContainerReusableView class] forSupplementaryViewOfKind:CVStackedSectionSupplementaryItemKind withReuseIdentifier:@"container"];
+        [self.collectionView registerClass:[CVContainerReusableView class] forSupplementaryViewOfKind:CVStackedSectionPageCellKind withReuseIdentifier:CVViewControllerContainerID];
         
         self.collectionView.backgroundColor = [UIColor colorWithWhite:0.2 alpha:0.8];
         self.collectionView.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth;
@@ -52,13 +52,9 @@
     CGFloat height = self.view.bounds.size.height * 1.0;
     self.collectionView.frame = CGRectMake(0, self.view.bounds.size.height - height, self.view.bounds.size.width, height);
     [self.view addSubview:self.collectionView];
+    
+    self.sideBySideLayout.itemTransforms = self.layout.itemTransforms;
 	// Do any additional setup after loading the view, typically from a nib.
-}
-
-- (void)didReceiveMemoryWarning
-{
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
 }
 
 #pragma mark - UICollectionView DataSource / Delegate
@@ -89,7 +85,7 @@
 }
 
 - (UICollectionReusableView *)collectionView:(UICollectionView *)collectionView viewForSupplementaryElementOfKind:(NSString *)kind atIndexPath:(NSIndexPath *)indexPath {
-    UICollectionReusableView *view = [collectionView dequeueReusableSupplementaryViewOfKind:kind withReuseIdentifier:@"container" forIndexPath:indexPath];
+    UICollectionReusableView *view = [collectionView dequeueReusableSupplementaryViewOfKind:kind withReuseIdentifier:CVViewControllerContainerID forIndexPath:indexPath];
         
     return view;
 }
@@ -113,6 +109,7 @@
     
     self.sideBySideLayout.transitioning = YES;
     self.sideBySideLayout.offsetForTransition = CGPointMake(indexPath.section * collectionView.frame.size.width, 0);
+ 
     __weak typeof(self) weak = self;
     [UIView animateWithDuration:duration delay:0.0 usingSpringWithDamping:springDampening initialSpringVelocity:initalSpringVelocity options:0 animations:^{
         [self.collectionView setCollectionViewLayout:layoutToGoTo];

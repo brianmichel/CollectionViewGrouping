@@ -9,8 +9,6 @@
 #import <UIKit/UIKit.h>
 #import "CVBaseCardCollectionViewLayout.h"
 
-extern NSString * const CVStackedSectionSupplementaryItemKind;
-
 @interface CVStackedSectionFlowLayout : CVBaseCardCollectionViewLayout
 
 @property (assign) CGSize itemSize;

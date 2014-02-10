@@ -13,4 +13,9 @@ extern NSString * const CVStackedSectionPageCellKind;
 
 @interface CVBaseCardCollectionViewLayout : UICollectionViewFlowLayout
 
+@property (strong) NSMutableDictionary *itemTransforms;
+@property (strong) NSDictionary *layoutAttributes;
+@property (assign) CGSize contentSize;
+
+- (CGPoint)pageOriginForSection:(NSIndexPath *)indexPath;
 @end

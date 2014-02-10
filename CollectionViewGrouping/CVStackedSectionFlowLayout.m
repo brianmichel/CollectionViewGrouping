@@ -8,50 +8,15 @@
 
 #import "CVStackedSectionFlowLayout.h"
 
-extern NSString * const CVStackedSectionSupplementaryItemKind = @"CVStackedSectionSupplementaryItemKind";
-
-@interface CVStackedSectionFlowLayout ()
-@property (strong) NSDictionary *layoutAttributes;
-@property (strong) NSMutableDictionary *transforms;
-@property (assign) CGSize contentSize;
-@end
-
 @implementation CVStackedSectionFlowLayout
 
 - (instancetype)initWithItemSize:(CGSize)size {
     self = [super init];
     if (self) {
         self.itemSize = size;
-        self.transforms = [NSMutableDictionary dictionary];
     }
     
     return self;
-}
-
-- (UICollectionViewLayoutAttributes *)layoutAttributesForItemAtIndexPath:(NSIndexPath *)indexPath {
-    return self.layoutAttributes[CVStackedSectionItemCellKind][indexPath];
-}
-
-- (UICollectionViewLayoutAttributes *)layoutAttributesForSupplementaryViewOfKind:(NSString *)kind atIndexPath:(NSIndexPath *)indexPath {
-    return self.layoutAttributes[CVStackedSectionSupplementaryItemKind][[NSIndexPath indexPathForItem:0 inSection:0]];
-}
-
-- (CGSize)collectionViewContentSize {
-    return self.contentSize;
-}
-
-- (NSArray *)layoutAttributesForElementsInRect:(CGRect)rect {
-    NSMutableArray *allAttributes = [NSMutableArray arrayWithCapacity:self.layoutAttributes.count];
-    
-    [self.layoutAttributes enumerateKeysAndObjectsUsingBlock:^(NSString *elementIdentifier, NSDictionary *elementsInfo, BOOL *stop) {
-        [elementsInfo enumerateKeysAndObjectsUsingBlock:^(NSIndexPath *indexPath, UICollectionViewLayoutAttributes *attributes, BOOL *innerStop) {
-            if (CGRectIntersectsRect(rect, attributes.frame)) {
-                [allAttributes addObject:attributes];
-            }
-        }];
-    }];
-    
-    return allAttributes;
 }
 
 - (void)prepareLayout {
@@ -69,41 +34,52 @@ extern NSString * const CVStackedSectionSupplementaryItemKind = @"CVStackedSecti
             indexPath = [NSIndexPath indexPathForItem:j inSection:i];
             UICollectionViewLayoutAttributes *attributes = [self layoutAttributesForStackAtIndexPath:indexPath];
             stackAttributes[indexPath] = attributes;
+            [self checkAndUpdateContentSizeIfNeededFromAttributes:attributes];
             
-            CGFloat endX = CGRectGetMaxX(attributes.frame);
-            CGFloat endY = CGRectGetMaxY(attributes.frame);
-            self.contentSize = CGSizeMake(MAX(endX, self.contentSize.width), MAX(endY, self.contentSize.height));
-            
-            if (indexPath.item == 0) {
-                UICollectionViewLayoutAttributes *footerAttribute = [UICollectionViewLayoutAttributes layoutAttributesForSupplementaryViewOfKind:CVStackedSectionSupplementaryItemKind withIndexPath:indexPath];
-                footerAttribute.alpha = 0.0;
-                footerAttribute.zIndex = -1;
-                CGFloat originX = self.collectionView.bounds.size.width * indexPath.section;
-                footerAttribute.center = CGPointMake(originX + round(self.collectionView.bounds.size.width/2), CGRectGetMidY(self.collectionView.bounds));
-                footerAttributes[indexPath] = footerAttribute;
+            if (indexPath.item == 0) { //create the header attributes
+                footerAttributes[indexPath] = [self layoutAttributesForPageItemAtIndexPath:indexPath];
             }
         }
     }
     newLayoutInformation[CVStackedSectionItemCellKind] = stackAttributes;
-    newLayoutInformation[CVStackedSectionSupplementaryItemKind] = footerAttributes;
+    newLayoutInformation[CVStackedSectionPageCellKind] = footerAttributes;
     self.layoutAttributes = [NSDictionary dictionaryWithDictionary:newLayoutInformation];
 }
 
+- (UICollectionViewLayoutAttributes *)layoutAttributesForItemAtIndexPath:(NSIndexPath *)indexPath {
+    return self.layoutAttributes[CVStackedSectionItemCellKind][indexPath];
+}
+
+- (UICollectionViewLayoutAttributes *)layoutAttributesForSupplementaryViewOfKind:(NSString *)kind atIndexPath:(NSIndexPath *)indexPath {
+    return self.layoutAttributes[CVStackedSectionPageCellKind][[NSIndexPath indexPathForItem:0 inSection:0]];
+}
+
 - (UICollectionViewLayoutAttributes *)layoutAttributesForStackAtIndexPath:(NSIndexPath *)indexPath {
-    UICollectionViewLayoutAttributes *attribs = [super layoutAttributesForItemAtIndexPath:indexPath];
+    UICollectionViewLayoutAttributes *attribs = [UICollectionViewLayoutAttributes layoutAttributesForCellWithIndexPath:indexPath];
 
     attribs.center = [self stackCenterForIndexPath:indexPath];
+    attribs.size = self.itemSize;
     
-    NSValue *transformValue = self.transforms[indexPath];
+    NSValue *transformValue = self.itemTransforms[indexPath];
     if (transformValue) {
         attribs.transform = [transformValue CGAffineTransformValue];
     } else {
         CGFloat rotationValue = round((arc4random_uniform(2000) / 423.0) * (arc4random() % 2 == 0 ? 1 : -1));
         attribs.transform = CGAffineTransformMakeRotation(rotationValue * (M_PI / 180));
-        self.transforms[indexPath] = [NSValue valueWithCGAffineTransform:attribs.transform];
+        self.itemTransforms[indexPath] = [NSValue valueWithCGAffineTransform:attribs.transform];
     }
     
     return attribs;
+}
+
+- (UICollectionViewLayoutAttributes *)layoutAttributesForPageItemAtIndexPath:(NSIndexPath *)indexPath {
+    UICollectionViewLayoutAttributes *footerAttribute = [UICollectionViewLayoutAttributes layoutAttributesForSupplementaryViewOfKind:CVStackedSectionPageCellKind withIndexPath:indexPath];
+    footerAttribute.alpha = 0.0;
+    footerAttribute.zIndex = -1;
+    CGFloat originX = [self pageOriginForSection:indexPath].x;
+    footerAttribute.center = CGPointMake(originX + round(self.collectionView.bounds.size.width/2), CGRectGetMidY(self.collectionView.bounds));
+    
+    return footerAttribute;
 }
 
 - (CGPoint)stackCenterForIndexPath:(NSIndexPath *)indexPath {
@@ -116,6 +92,12 @@ extern NSString * const CVStackedSectionSupplementaryItemKind = @"CVStackedSecti
 
 - (CGSize)stackDimensions {
     return CGSizeMake(self.collectionView.frame.size.width/3, self.collectionView.frame.size.width/3);
+}
+
+- (void)checkAndUpdateContentSizeIfNeededFromAttributes:(UICollectionViewLayoutAttributes *)attributes {
+    CGFloat endX = CGRectGetMaxX(attributes.frame);
+    CGFloat endY = CGRectGetMaxY(attributes.frame);
+    self.contentSize = CGSizeMake(MAX(endX, self.contentSize.width), MAX(endY, self.contentSize.height));
 }
 
 @end
