@@ -17,5 +17,6 @@ extern NSString * const CVStackedSectionPageCellKind;
 @property (strong) NSDictionary *layoutAttributes;
 @property (assign) CGSize contentSize;
 
+- (instancetype)initWithItemSize:(CGSize)size;
 - (CGPoint)pageOriginForSection:(NSIndexPath *)indexPath;
 @end

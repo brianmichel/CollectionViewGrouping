@@ -12,13 +12,16 @@ NSString * const CVStackedSectionItemCellKind = @"stacked_item_cell";
 NSString * const CVStackedSectionPageCellKind = @"page_item_cell";
 
 @implementation CVBaseCardCollectionViewLayout
-- (instancetype)init {
+- (instancetype)initWithItemSize:(CGSize)size {
     self = [super init];
     if (self) {
+        self.itemSize = size;
         self.itemTransforms = [NSMutableDictionary dictionary];
     }
+    
     return self;
 }
+
 - (CGPoint)pageOriginForSection:(NSIndexPath *)indexPath {
     CGFloat originX = self.collectionView.bounds.size.width * indexPath.section;
     return CGPointMake(originX, 0);
@@ -41,4 +44,13 @@ NSString * const CVStackedSectionPageCellKind = @"page_item_cell";
 - (CGSize)collectionViewContentSize {
     return self.contentSize;
 }
+
+- (UICollectionViewLayoutAttributes *)layoutAttributesForItemAtIndexPath:(NSIndexPath *)indexPath {
+    return self.layoutAttributes[CVStackedSectionItemCellKind][indexPath];
+}
+
+- (UICollectionViewLayoutAttributes *)layoutAttributesForSupplementaryViewOfKind:(NSString *)kind atIndexPath:(NSIndexPath *)indexPath {
+    return self.layoutAttributes[CVStackedSectionPageCellKind][indexPath];
+}
+
 @end

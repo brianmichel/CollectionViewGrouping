@@ -10,15 +10,6 @@
 
 @implementation CVStackedSectionFlowLayout
 
-- (instancetype)initWithItemSize:(CGSize)size {
-    self = [super init];
-    if (self) {
-        self.itemSize = size;
-    }
-    
-    return self;
-}
-
 - (void)prepareLayout {
     [super prepareLayout];
 
@@ -44,14 +35,6 @@
     newLayoutInformation[CVStackedSectionItemCellKind] = stackAttributes;
     newLayoutInformation[CVStackedSectionPageCellKind] = footerAttributes;
     self.layoutAttributes = [NSDictionary dictionaryWithDictionary:newLayoutInformation];
-}
-
-- (UICollectionViewLayoutAttributes *)layoutAttributesForItemAtIndexPath:(NSIndexPath *)indexPath {
-    return self.layoutAttributes[CVStackedSectionItemCellKind][indexPath];
-}
-
-- (UICollectionViewLayoutAttributes *)layoutAttributesForSupplementaryViewOfKind:(NSString *)kind atIndexPath:(NSIndexPath *)indexPath {
-    return self.layoutAttributes[CVStackedSectionPageCellKind][[NSIndexPath indexPathForItem:0 inSection:0]];
 }
 
 - (UICollectionViewLayoutAttributes *)layoutAttributesForStackAtIndexPath:(NSIndexPath *)indexPath {

@@ -28,7 +28,7 @@ NSString * const CVViewControllerContainerID = @"container";
 - (instancetype)initWithCoder:(NSCoder *)aDecoder {
     self = [super initWithCoder:aDecoder];
     if (self) {
-        self.sideBySideLayout = [[CVSideBySideCollectionViewLayout alloc] init];
+        self.sideBySideLayout = [[CVSideBySideCollectionViewLayout alloc] initWithItemSize:CV_ITEM_SIZE];
         self.layout = [[CVStackedSectionFlowLayout alloc] initWithItemSize:CV_ITEM_SIZE];
         
         self.collectionView = [[UICollectionView alloc] initWithFrame:CGRectZero collectionViewLayout:self.layout];

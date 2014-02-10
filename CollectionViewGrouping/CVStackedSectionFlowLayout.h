@@ -11,8 +11,5 @@
 
 @interface CVStackedSectionFlowLayout : CVBaseCardCollectionViewLayout
 
-@property (assign) CGSize itemSize;
-
-- (instancetype)initWithItemSize:(CGSize)size;
 - (CGPoint)stackCenterForIndexPath:(NSIndexPath *)indexPath;
 @end

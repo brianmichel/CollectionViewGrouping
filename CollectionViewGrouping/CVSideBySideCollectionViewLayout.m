@@ -9,13 +9,6 @@
 #import "CVSideBySideCollectionViewLayout.h"
 
 @implementation CVSideBySideCollectionViewLayout
-- (UICollectionViewLayoutAttributes *)layoutAttributesForItemAtIndexPath:(NSIndexPath *)indexPath {
-    return self.layoutAttributes[CVStackedSectionItemCellKind][indexPath];
-}
-
-- (UICollectionViewLayoutAttributes *)layoutAttributesForSupplementaryViewOfKind:(NSString *)kind atIndexPath:(NSIndexPath *)indexPath {
-    return self.layoutAttributes[CVStackedSectionPageCellKind][indexPath];
-}
 
 - (void)prepareLayout {
     [super prepareLayout];
@@ -74,7 +67,8 @@
     UICollectionViewLayoutAttributes *attribs = [UICollectionViewLayoutAttributes layoutAttributesForCellWithIndexPath:indexPath];
     CGRect frame = [self frameForSection:indexPath.section];
     
-    CGRect rect = CGRectMake(frame.origin.x + 20, 30 + (indexPath.row * 200), 150, 200);
+    CGSize itemSize = self.itemSize;
+    CGRect rect = CGRectMake(frame.origin.x + 20, 30 + (indexPath.row * itemSize.height), itemSize.width, itemSize.height);
     attribs.frame = rect;
     attribs.zIndex = 1.0;
     
